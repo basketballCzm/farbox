@@ -1,0 +1,206 @@
+---
+date: 2017-05-11 17:26
+status: public
+title: sax解析xml
+---
+
+* 这次的代码写的比较乱，有待以后进行改进，不过sax的更进一步操作有待学习
+###SAX方式
+* 原理：基于事件驱动，在读取XML文档内容时，事件源顺序地对文档进行扫描，当扫描到文档的开始与结束(Document)标签、节点元素的开始与结束(Element)标签时，直接调用对应的方法，并将状态信息以参数的形式传递到方法中，然后我们可以依据状态信息来执行相关的自定义操作。
+* 优点：解析效率高、占存少、灵活性高
+* 缺点：解析方法复杂（API接口复杂），代码量大；可拓展性差：无法对 XML 树内容结构进行任何修改
+* 适用于需要处理大型 XML 文档、性能要求较高、不需要对解析文档进行修改且不需要对解析文档多次访问的场合
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<books>
+<book id="p0001" bookcategory=" 文 艺 " amount="150"
+remain="80" discount="8.5">
+ <title>三国演义</title>
+ <author>罗贯中</author>
+ <publisher>文艺出版社</publisher>
+<ISBN>0-764-58007-8</ISBN>
+ <price>80</price>
+</book>
+<book id="p0002" bookcategory=" 文 艺 " amount="300"
+remain="180" discount="8.7">
+ <title>红楼梦</title>
+ <author>曹雪芹</author>
+ <publisher>三秦出版社</publisher>
+<ISBN>7805468397</ISBN>
+ <price>22</price>
+</book>
+<book id="p0003" bookcategory=" 文 艺 " amount="200"
+remain="175" discount="8.5">
+ <title>西游记(上下册)</title>
+ <author>吴承恩</author>
+ <publisher>人民文学出版社</publisher>
+<ISBN>7020008739</ISBN>
+ <price>40.12</price>
+</book>
+<book id="p0189" bookcategory=" 计 算 机 " amount="230"
+remain="160" discount="8.0">
+<title>VB.NET 程序设计语言</title>
+<author>微软公司著</author>
+<publisher>高等教育出版社</publisher>
+<ISBN>7-04-013188-9</ISBN>
+<price>86.00</price>
+</book>
+<book id="p0028" bookcategory=" 计 算 机 " amount="100"
+remain="90" discount="7.5">
+<title>JavaScript 速成教程</title>
+<author>Michael Moncur 著</author>
+<publisher>机械工业出版社</publisher>
+<ISBN>7-111-09070-5</ISBN>
+<price>28.00</price>
+</book>
+</books>
+```
+###Books.java
+
+```java
+package saxXmlParser;
+
+public class Books {
+	public String id;
+	public String title;
+	public String author;
+}
+```
+###SaxParserHandler
+```java
+package saxXmlParser;
+
+import java.util.List;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+public class SaxParserHandler extends DefaultHandler {
+	//用来遍历XML文件的开始标签
+	
+	 private String preTag;
+	 private Books currentBook;
+	 private List<Books> allBooks;
+	 private Books findBook;
+	
+	@Override
+	public void startElement(String uri ,String localName, String qName,
+			Attributes attributes) throws SAXException {
+		super.startElement(uri, localName, qName, attributes);
+		
+		int length = attributes.getLength();
+		if(length > 0)
+		{
+			System.out.println("元素" + qName + "的属性是：");
+			
+			for(int i = 0; i < length; i++)
+			{
+				System.out.println("    属性名：" + attributes.getQName(i) + "，属性值： " + attributes.getValue(i));
+				if(attributes.getQName(i).equals("id") && attributes.getValue(i).equals("p0002"))
+				{
+					currentBook = new Books();
+					currentBook.id = attributes.getValue("id");
+				}
+			}
+			System.out.println();
+		}
+		
+		preTag = qName;
+		System.out.print("<" + qName + ">");
+	}
+	
+	//用来遍历XML文件的结束标签
+	@Override
+	public void endElement(String uri, String localName, String qName)throws SAXException{
+		super.endElement(uri, localName, qName);
+		if("book".equals(qName))
+		{
+			if(null != currentBook)
+			{
+				System.out.println(preTag);
+				System.out.print(currentBook.id);
+				System.out.print(currentBook.title);
+				System.out.print(currentBook.author);
+				setFindBook(currentBook);
+				currentBook = null;
+			}
+		}
+		//必须要在这里将preTag回执为null,因为标签都是嵌套的
+		preTag = null;
+		System.out.println("<" + qName + "/>");
+	}
+	//解析文本内容
+	@Override
+	public void characters(char[] ch, int start, int length)throws SAXException{
+		super.characters(ch,start,length);
+		String value = new String(ch, start, length).trim();
+		if(!value.equals(""))
+		{
+			System.out.print(value);
+		}
+		if(null != currentBook)
+		{
+			if("title".equals(preTag))
+			{
+				currentBook.title = value;
+				System.out.print(currentBook.title);
+			}else if("author".equals(preTag))
+			{
+				System.out.print(value);
+				currentBook.author = value;
+			}
+		}
+	}
+	
+	//用来标识解析开始
+	@Override
+	public void startDocument()throws SAXException{
+		System.out.println("SAX解析开始");
+		super.startDocument();
+	}
+	
+	//用来标识解析结束
+	@Override
+	public void endDocument()throws SAXException{
+		System.out.println("SAX解析结束");
+		super.endDocument();
+	}
+
+	public Books getFindBook() {
+		return findBook;
+	}
+
+	public void setFindBook(Books findBook) {
+		this.findBook = findBook;
+	}	
+}
+```
+
+###SaxXmlParser
+```java
+package saxXmlParser;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+public class SaxXmlParser {
+	public static void main(String[] args)
+	{
+		SAXParserFactory sFactory = SAXParserFactory.newInstance();
+		try
+		{
+			SAXParser saxParser = sFactory.newSAXParser();
+			SaxParserHandler saxParserHandler = new SaxParserHandler();
+			saxParser.parse("src/saxXmlParser/SaxBooks.xml",saxParserHandler);
+			Books book = saxParserHandler.getFindBook();
+			System.out.println("查找的书籍名称是：id:" +  book.id + " title:" + book.title + " author" + book.author);
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+}
+```
+[可以参考的网站](http://www.blogjava.net/DLevin/archive/2012/11/18/391545.html)

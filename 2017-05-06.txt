@@ -1,0 +1,116 @@
+---
+date: 2017-05-06 20:49
+status: public
+title: DTD
+---
+
+#注意DTD的写法，DTD分为内部DTD和外部DTD
+```HTML
+<!-- 内部dtd -->  
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE persons[  
+    <!-- 常用控制符  ？表示0次或1词 ，* 表示 0次或多次 ，+ 表示1词或多次 ，默认表示1词-->  
+    <!ELEMENT persons (person+)>  
+    <!ELEMENT person ( name , password? , age+) >   
+      
+    <!ATTLIST person sex  (男|女) #REQUIRED>  
+    <!ATTLIST person id  ID  #REQUIRED>  
+      
+    <!ELEMENT name (#PCDATA)>  
+    <!ELEMENT password (#PCDATA)>  
+    <!ELEMENT age (#PCDATA)>  
+]>  
+<persons>  
+      
+    <person sex="男" id="p1">   
+        <name></name>   
+        <password></password>  
+        <age></age>  
+    </person>  
+      
+      
+    <person sex="女" id="p2">  
+        <name></name>  
+        <password></password>  
+        <age></age>  
+    </person>  
+      
+</persons>
+```
+
+#外部DTD
+persons.dtd
+```html
+<?xml version="1.0" encoding="UTF-8"?>  
+<!ELEMENT persons (person+)>  
+<!ELEMENT person (name, age, sex, message+)>  
+<!ATTLIST person  
+    personId ID #REQUIRED  
+>  
+<!ELEMENT name (#PCDATA)>  
+<!ELEMENT age (#PCDATA)>  
+<!ELEMENT sex (#PCDATA)>  
+<!ELEMENT message (#PCDATA)>  
+<!ATTLIST message  
+    id ID #REQUIRED  
+>  
+```
+
+persons.xml
+```html
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE persons SYSTEM "E:\xml\01\persons.dtd">  
+<persons>  
+    <person personId="p1">  
+        <name/>  
+        <age></age>  
+        <sex></sex>  
+        <message id="m1"/>  
+    </person>  
+    <person personId="p2">  
+        <name />  
+        <age/>  
+        <sex/>  
+        <message id="m2"/>  
+    </person>  
+</persons> 
+```
+
+##注意事项
+* 在实验的过程中出现了编码问题，如果用windows自带的记事本出现错误可以考虑用憋的文本编辑器保存将保存格式改为无BOM的格式再进行解析能够解决相应的问题。
+* PCDATA 的意思是被解析的字符数据（parsed character data）。可把字符数据想象为 XML 元素的开始标签与结束标签之间的文本。PCDATA 是会被解析器解析的文本。这些文本将被解析器检查实体以及标记。文本中的标签会被当作标记来处理，而实体会被展开。不过，被解析的字符数据不应当包含任何 & < > 字符；需要使用 &amp; &lt; &gt; 实体来分别替换它们。
+* CDATA 的意思是字符数据（character data）。CDATA 是不会被解析器解析的文本。在这些文本中的标签不会被当作标记来对待，其中的实体也不会被展开。
+几个实体引用字符：
+\&lt; < 
+\&gt; > 
+\&amp; & 
+\&quot; " 
+\&apos; '   
+
+* [属性与元素的区别](https://wizardforcel.gitbooks.io/w3school-xml/content/30.html)
+
+* 元数据（关于数据的数据）应当存储为属性，而数据本身应当存储为元素。
+
+###实验一的代码：
+```HTML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE province[
+<!-- 常用控制符  ？表示0次或1词 ，* 表示 0次或多次 ，+ 表示1词或多次 ，默认表示1词-->  
+<!ELEMENT province (province+)>
+<!ELEMENT province (area , population , neighbor_Country+ , main_River* , adjacent_Provinces+ , 
+                    prefecture-level_city+ , country-level_city+)>
+<!-- PCDATA是会被解析的文本  CDATA是不会被解析的文本 -->
+<!ATTLIST province referred CDATA #REQUIRED>
+<!ATTLIST province capital_City CDATA #REQUIRED>
+<!ATTLIST province position (沿海|内陆|环海) #REQUIRED>
+
+<!ELEMENT area (#PCDATA)>
+<!ELEMENT population (#PCDATA)>
+<!ELEMENT neighbor_Country (#PCDATA)>
+<!ELEMENT main_River (#PCDATA)>
+<!ELEMENT adjacent_Provinces (#PCDATA)>
+<!ELEMENT prefecture-level_city (#PCDATA)>
+<!ELEMENT country-level_city (#PCDATA)>					
+
+]>
+```

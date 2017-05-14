@@ -1,0 +1,11 @@
+---
+date: 2017-05-02 15:15
+status: public
+title: 'windows mutex 编写说明'
+---
+
+mutex_Hanle = CreateMutex(NULL,false,NULL);
+WaitForSingleObject(mutex_Handle, INFINITE);
+ReleaseMutex(mutex_Handle);
+closeHandle(mutex_Handle);
+

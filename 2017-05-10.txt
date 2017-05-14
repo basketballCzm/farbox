@@ -1,0 +1,13 @@
+---
+date: 2017-05-10 17:15
+status: public
+title: 计算机相关最近论文
+---
+
+###以下是一些能够下载最新论文的网站
+* 已经被审核过了的论文DL.ACM
+* scholar
+* Ieee
+* Xplore
+
+###好的网页ppt  nodeppt

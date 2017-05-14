@@ -1,0 +1,170 @@
+---
+date: 2017-05-07 21:18
+status: public
+title: dom文档的文本节点的解释
+---
+
+#在dom树中包含了文本节点
+```xml
+<?xml version="1.0" encoding="UTF-8"?>  
+<students>  
+<!--this is an example-->  
+<student>  
+<name>  
+<first-name>Mike</first-name>  
+<last-name>Silver</last-name>  
+</name>  
+<sex>male</sex>  
+<class studentid="15">98211</class>  
+<birthday>  
+<day>3</day>  
+<month>3</month>  
+<year>1979</year>  
+</birthday>  
+</student>  
+<student>  
+<name>  
+<first-name>Ben</first-name>  
+<last-name>Silver</last-name>  
+</name>  
+<sex>male</sex>  
+<class studentid="16">98211</class>  
+<birthday>  
+<day>3</day>  
+<month>3</month>  
+<year>1980</year>  
+</birthday>  
+</student>  
+</students>  
+```
+```java
+import javax.xml.parsers.*;  
+import org.w3c.dom.*;  
+import java.io.File;  
+import xmlwriter.XMLProperties;  
+public class Xml  
+{  
+public static void main(String args[])  
+{ try  
+{ File file=new File("links.xml");  
+DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();  
+DocumentBuilder builder=factory.newDocumentBuilder();  
+Document doc=builder.parse(file);  
+doc.normalize();  
+Element theRoot = doc.getDocumentElement();  
+NodeList theList=theRoot.getChildNodes();  
+System.out.println("the students root has "+theList.getLength()+" children");  
+}  
+}
+}
+```
+![头像](</_image/dom.jpg>)
+* 实验的结果是7  这也就是为什么在遍历节点时要进行校验的原因
+* 但是从上面XML文档可以看出，students一共只有3个孩子节点（包括注释），但程序得到的结果确实有7个孩子结点。为什么呢？因为在DOM中节点 和元素不是等价的，它的7个节点包括：两个student元素、注释及它们周围的文本节点。这些文本节点有可能是回车换行、空格或者退格，假如把这些回车 换行、空格和退格都删除，那么DOM解释的时候就没有这些文本节点，孩子节点就真的只有3个
+仅取出子节点中的'ELEMENT_NODE'，换行符组成的Node是'TEXT_NODE'
+```html
+<?xml version="1.0" encoding="UTF-8" ?>
+<employees>
+    <user id="1">
+        <name>zifangsky</name>
+        <age>10</age>
+        <sex>male</sex>
+        <contact>https://www.zifangsky.cn</contact>
+    </user>
+    <user id="2">
+        <name>admin</name>
+        <age>20</age>
+        <sex>male</sex>
+        <contact>https://www.tar.pub</contact>
+    </user>
+</employees>
+```
+
+```html
+package cn.zifangsky.xml;
+ 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+ 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+ 
+public class DomParseTest {
+ 
+    public static void main(String[] args) {
+        DocumentBuilderFactory dFactory = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder dBuilder = dFactory.newDocumentBuilder();
+            // 加载一个xml文件
+            Document document = dBuilder
+                    .parse("src/cn/zifangsky/xml/demo1.xml");
+            // 获取user节点集合
+            NodeList userList = document.getElementsByTagName("user");
+            int userListLength = userList.getLength();
+            System.out.println("此xml文件一共有" + userListLength + "个'user'节点\n");
+ 
+            // 遍历
+            for (int i = 0; i < userListLength; i++) {
+                // 通过item方法获取指定的节点
+                Node userNode = userList.item(i);
+ 
+                // *********************解析属性***********************
+ 
+                // 获取该节点的所有属性值，如：id="1"
+                NamedNodeMap userAttributes = userNode.getAttributes();
+                System.out.println("'user'节点" + i + "有"
+                        + userAttributes.getLength() + "个属性：");
+                /**
+                 * 1 在不清楚有哪些属性的情况下可以遍历所有属性，
+                 * 并获取每个属性对应的属性名和属性值
+                 * */
+                for (int j = 0; j < userAttributes.getLength(); j++) {
+                    // 'user'节点的每个属性组成的节点
+                    Node attrnNode = userAttributes.item(j);
+                    System.out.println("属性" + j + "： 属性名： "
+                            + attrnNode.getNodeName() + " ，属性值： "
+                            + attrnNode.getNodeValue());
+                }
+                /**
+                 * 2 在知道有哪些属性值的情况下，可以获取指定属性名的属性值
+                 * */
+                Element userElement = (Element) userList.item(i);
+                System.out.println("属性为'id'的对应值是： "
+                        + userElement.getAttribute("id"));
+ 
+                // *********************解析子节点************************
+                NodeList childNodes = userNode.getChildNodes();
+                System.out.println("\n该节点一共有" + childNodes.getLength()
+                        + "个子节点，分别是：");
+ 
+                // 遍历子节点
+                for (int k = 0; k < childNodes.getLength(); k++) {
+                    Node childNode = childNodes.item(k);
+                    // 从输出结果可以看出，每行后面的换行符也被当做了一个节点，因此是：4+5=9个子节点
+                    // System.out.println("节点名： " + childNode.getNodeName() +
+                    // "，节点值： " + childNode.getTextContent());
+                    // 仅取出子节点中的'ELEMENT_NODE'，换行符组成的Node是'TEXT_NODE'
+                    if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                        // System.out.println("节点名： " + childNode.getNodeName()
+                        // + "，节点值： " + childNode.getTextContent());
+                        // 最低一层是文本节点，节点名是'#text'
+                        System.out.println("节点名： " + childNode.getNodeName()
+                                + "，节点值： "
+                                + childNode.getFirstChild().getNodeValue());
+                    }
+                }
+ 
+                System.out.println("***************************");
+            }
+ 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+ 
+    }
+ 
+}
+```

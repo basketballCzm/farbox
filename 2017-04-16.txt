@@ -1,0 +1,20 @@
+---
+date: 2017-04-16 11:40
+status: public
+title: Qt练习2
+---
+
+#qt系统时间的获取以及转化
+[qt系统时间的获取](http://blog.csdn.net/zzk197/article/details/7498593)
+```C++
+QDateTime time = QDateTime::currentDateTime();//获取系统现在的时间
+QString str = time.toString("yyyy-MM-dd hh:mm:ss ddd"); //设置显示格式
+label->setText(str);//在标签上显示时间
+QString QDateTime::toString ( const QString & format ) const
+Returns the datetime as a string. The format parameter determines the format of the result string.
+These expressions may be used for the date:
+```
+#qt的有用的系统控件
+* 查阅书籍GUI Qt4编程第二章
+
+####Qt4编程的相关书籍

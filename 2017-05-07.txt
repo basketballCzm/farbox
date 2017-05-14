@@ -1,0 +1,349 @@
+---
+date: 2017-05-07 15:08
+status: public
+title: 'java dom 解析xml'
+---
+
+##javaz中的比较
+* 难怪是java虚拟机 可能是直接不能访问到内存的缘故。
+
+在C++中，两个字符串比较的代码可以为：
+(string1==string2)
+但在java中，这个代码即使在两个字符串完全相同的情况下也会返回false
+Java中必须使用string1.equals(string2)来进行判断
+
+补充
+
+如果：
+string s1="Hello";
+string s2="Hello";
+则(s1==s2)=true;
+因为他们指向的同一个对象。
+
+如果：
+String s1=new String("Hello");
+String s2=new String("Hello");
+则(s1==s2)=false
+
+如果把其他变量的值赋给s1和s2，即使内容相同，由于不是指向同一个对象，也会返回false。所以建议使用equals()，因为equals比较的才是真正的内容
+
+例如：
+String string1=new String( "aaa" );
+String string2=new String( "aaa" );
+这两个字符串当然应该是相等的。
+如果用表达式string1==string2，则该表达式的值为false
+如果用表达式string1.equals(string2)，则该表达式的值为true
+因此应该用string1.equals(string2)，在if语句中就是
+if(string1.equals(string2)==true) //字符串相等，……
+
+string1==string2,是值相等,而且内存地址也相等,是完全的相等
+string1.equals(string2)为true,只是值相等
+
+
+如果比较字符串的大小使用：str1.compareTo(String str2)
+
+
+按字典顺序比较两个字符串。该比较基于字符串中各个字符的 Unicode 值。按字典顺序将此 String 对象表示的字符序列与参数字符串所表示的字符序列进行比较。如果按字典顺序此 String 对象位于参数字符串之前，则比较结果为一个负整数。如果按字典顺序此 String 对象位于参数字符串之后，则比较结果为一个正整数。如果这两个字符串相等，则结果为 0；compareTo 只在方法 equals(Object) 返回 true 时才返回 0。
+这 是字典排序的定义。如果这两个字符串不同，那么它们要么在某个索引处的字符不同（该索引对二者均为有效索引），要么长度不同，或者同时具备这两种情况。如 果它们在一个或多个索引位置上的字符不同，假设 k 是这类索引的最小值；则在位置 k 上具有较小值的那个字符串（使用 < 运算符确定），其字典顺序在其他字符串之前。在这种情况下，compareTo 返回这两个字符串在位置 k 处两个char 值的差，即值：
+
+this.charAt(k)-anotherString.charAt(k)
+
+如果没有字符不同的索引位置，则较短字符串的字典顺序在较长字符串之前。在这种情况下，compareTo 返回这两个字符串长度的差，即值：
+this.length()-anotherString.length()
+
+###今天学习了dom操作xml的有关内容，记录下
+```java
+package xmlParser;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+//这里在每次添加包时要注意坑能在很多类下面下面有同一个类
+import org.w3c.dom.Document;  
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;  
+
+public class xmlPersonParser {
+	public static void main(String[] args)
+	{
+		File file = new File("src/xmlParser/person.xml");
+		readXmlFile(file);
+		findXmlElement(file,"宋江");
+		addXmlElement(file);
+		//modifyXmlElement(file,"宋江");
+	}
+	
+	
+	//遍历xml文件
+	public static void readXmlFile(File file)
+	{
+		try
+		{
+			//创建解析工厂
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setNamespaceAware(true);
+			//构造解析器
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			//得到xml文件
+			Document doc = dBuilder.parse(file);
+			NodeList stuList = doc.getElementsByTagName("学生");
+			for(int i = 0; i < stuList.getLength(); i++)
+			{
+				Node stuNode = stuList.item(i);
+				String str = "";
+				if(stuNode.getNodeType() == Node.ELEMENT_NODE)
+				{
+					Element stuElement = (Element) stuNode;
+					str = str + "name:" + stuElement.getAttribute("name") + '/';
+					Element gradeElement = (Element)stuElement.getElementsByTagName("各科成绩").item(0);
+					NodeList courseList = gradeElement.getElementsByTagName("Course");
+					NodeList scoreList  = gradeElement.getElementsByTagName("Score");
+					for(int j = 0; j < courseList.getLength(); j++)
+					{
+						//'\'为转义字符，在最后添加会报错
+						str = str + courseList.item(j).getTextContent() + "/";
+						str = str + scoreList.item(j).getTextContent() + "/";
+					}
+					str = str + "\n";
+					System.out.println(str);
+					//应该在下面一层再用NodeList
+					/*
+					NodeList gradeList = stuElement.getElementsByTagName("各科成绩");
+					for(int j = 0; j < gradeList.getLength(); j++)
+					{
+						Node singleGradeNode = gradeList.item(i);
+						if(singleGradeNode.getNodeType() == Node.ELEMENT_NODE)
+						{
+							Element singleGradeElement = (Element)singleGradeNode;
+							str
+						}
+					}*/
+				}
+			}
+			
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	//查找相应的元素
+	public static void findXmlElement(File file,String name)
+	{
+		try
+		{
+			//
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setNamespaceAware(true);
+			//
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(file);
+			NodeList stuList = doc.getElementsByTagName("学生");
+			for(int i = 0; i < stuList.getLength(); i++)
+			{
+				Node stuNode = stuList.item(i);
+				String str = "";
+				if(stuNode.getNodeType() == Node.ELEMENT_NODE)
+				{
+					Element stuElement = (Element) stuNode;
+					if(name.equals(stuElement.getAttribute("name")))
+					{
+						str = str + "name:" + stuElement.getAttribute("name") + '/';
+						Element gradeElement = (Element)stuElement.getElementsByTagName("各科成绩").item(0);
+						NodeList courseList = gradeElement.getElementsByTagName("Course");
+						NodeList scoreList  = gradeElement.getElementsByTagName("Score");
+						for(int j = 0; j < courseList.getLength(); j++)
+						{
+							//'\'为转义字符，在最后添加会报错
+							str = str + courseList.item(j).getTextContent() + "/";
+							str = str + scoreList.item(j).getTextContent() + "/";
+						}
+						str = str + "\n";
+						System.out.println(str);
+					}
+				}
+			}
+			
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	//添加元素
+	public static void addXmlElement(File file)
+	{
+		try
+		{
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setNamespaceAware(true);
+			//
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(file);
+			Element root = doc.getDocumentElement();
+			
+			Element stuNew = doc.createElement("学生");
+			stuNew.setAttribute("name","czm");
+			root.appendChild(stuNew);
+			Element gradeNew = doc.createElement("各科成绩");
+			stuNew.appendChild(gradeNew);;
+			
+			Element courseOne = doc.createElement("Course");
+			courseOne.setTextContent("计算机基础");
+			gradeNew.appendChild(courseOne);
+			Element gradeOne = doc.createElement("Score");
+			gradeOne.setTextContent("90");
+			gradeNew.appendChild(gradeOne);
+			
+			Element courseTwo = doc.createElement("Course");
+			courseTwo.setTextContent("C 语言");
+			gradeNew.appendChild(courseTwo);
+			Element gradeTwo = doc.createElement("Score");
+			gradeTwo.setTextContent("90");
+			gradeNew.appendChild(gradeTwo);
+			
+			Element courseThree = doc.createElement("Course");
+			courseThree.setTextContent("计算机网络");
+			gradeNew.appendChild(courseThree);
+			Element gradeThree = doc.createElement("Score");
+			gradeThree.setTextContent("90");
+			gradeNew.appendChild(gradeThree);
+			
+			root.appendChild(stuNew);
+			
+			TransformerFactory tffactory = TransformerFactory.newInstance();
+			Transformer tf = tffactory.newTransformer();
+			tf.transform(new DOMSource(doc),new StreamResult(new FileOutputStream("src/xmlParser/person.xml")));
+			
+			
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private static Element setAttribute(String string) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	//删除元素
+	public static void deleteXmlElement(File file, String name)
+	{
+		try
+		{
+			//
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setNamespaceAware(true);
+			//
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(file);
+			Element root = doc.getDocumentElement();
+			NodeList stuList = doc.getElementsByTagName("学生");
+			for(int i = 0; i < stuList.getLength(); i++)
+			{
+				Node stuNode = stuList.item(i);
+				String str = "";
+				if(stuNode.getNodeType() == Node.ELEMENT_NODE)
+				{
+					Element stuElement = (Element) stuNode;
+					if(name.equals(stuElement.getAttribute("name")))
+					{
+						root.removeChild(stuElement);
+						break;
+					}
+				}
+			}
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	//通过Xpath来获取目标节点，这个地方有问题，待改进
+	public static Node selectSingleNode(String express, Element source)
+	{
+		Node result = null;
+		XPathFactory xpathFactory = XPathFactory.newInstance();
+		XPath xpath=xpathFactory.newXPath();
+		try{
+			result = (Node) xpath.evaluate(express,source,XPathConstants.NODE);
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return result;
+		
+	}
+	
+	public static void modifyXmlElement(File file, String name)
+	{
+		try
+		{
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setNamespaceAware(true);
+			//
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(file);
+			Element root = doc.getDocumentElement();
+			//字符串里面的字符串要用单引号进行括起来  /班级[@代号='软件  1401']/学生[@name='宋江'
+			Element modifyElement = (Element )selectSingleNode("//班级[学生[@name='宋江']]",root);
+			Element gradeElement = (Element)modifyElement.getElementsByTagName("各科成绩").item(0);
+			gradeElement.getElementsByTagName("Course").item(0).setTextContent("99");
+			
+			TransformerFactory tffactory = TransformerFactory.newInstance();
+			Transformer tf = tffactory.newTransformer();
+			tf.transform(new DOMSource(doc),new StreamResult(new FileOutputStream("src/xmlParser/person.xml")));
+			
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+}
+
+```
+
+###递归进行访问dom树的结点
+```HTML
+import java.io.File;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+public class Main {
+  public static void main(String[] argv) throws Exception{
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setValidating(true);
+
+    factory.setExpandEntityReferences(false);
+
+    Document doc = factory.newDocumentBuilder().parse(new File("file.xml"));
+
+    visit(doc, 0);
+  }
+  public static void visit(Node node, int level) {
+    NodeList list = node.getChildNodes();
+    for (int i = 0; i < list.getLength(); i++) {
+      Node childNode = list.item(i);
+      visit(childNode, level + 1);
+    }
+  }
+}
+  ```

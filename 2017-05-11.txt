@@ -1,0 +1,23 @@
+---
+date: 2017-05-11 16:20
+status: public
+title: 一个具体SAX解析实例
+---
+
+首先定义简单的xml文件
+```xml
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<books> 
+    <book id="12"> 
+        <name>thinking in java</name> 
+         <price>85.5</price> 
+    </book> 
+    <book id="15"> 
+        <name>Spring in Action</name> 
+        <price>39.0</price> 
+    </book> 
+</books>
+}
+```
+[具体实例](http://www.blogjava.net/DLevin/archive/2012/11/18/391545.html)

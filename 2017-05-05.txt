@@ -1,0 +1,22 @@
+---
+date: 2017-05-05 21:12
+status: public
+title: 'linux 下printf和scanf'
+---
+
+```C++
+#include <iostream>
+using namespace std;
+ 
+int main() {
+    cout << sizeof(char *) << " "<< sizeof(char**) << endl;
+    cout << sizeof(int) << " " << sizeof(double) << " " << sizeof(short) << " " << endl;
+    cout << sizeof(long) << " " << sizeof(float) << " " << sizeof(short) << " " << endl;
+    return 0;
+}
+```
+* linux下面指针占8个字节
+Output:
+8 8
+4 8 2 
+8 4 2

@@ -1,0 +1,85 @@
+---
+date: 2017-04-29 20:04
+status: public
+title: 操作系统的事件调度机制
+---
+
+#操作系统的事件调度机制
+##最近的实验报告题目的请参考实验调度的pdf
+###如果要完成这次的实验需要注意一下几点：
+1. 事件集合触发操作编程，这个部分需要设置定时器，这个部分我是用timeSetEvent()API进行编写，这个函数能够开辟出一个子线程，当过一定的事件后自动在子线程中调用回调函数。
+2. 任务执行操作的编程，可以将题目中的6个task通过添加一个全局变量然后用一个函数进行表示。
+3. 标记为的管理，在timeSetEvent()在一定的时间内激发了回调函数后将对应事件的标志位置为1。
+4. 调度器调度，这个部分是按照事件优先级的顺序对事件表进行相应的轮询。注意每次轮询完后要break然后重新进行轮询，这样能够体现出优先级。
+
+####开发环境是windows
+```C++
+#include <stdio.h>
+#include <WINDOWS.H>
+#include <TIME.H>
+#include <MMSYSTEM.H>
+#pragma comment(lib, "Winmm.lib")
+#define N 6
+int flag = 0;
+int  init_Offset = 0x20;
+int id = 6;
+//标记位管理
+void event_Task()
+{
+	if(id > 0)
+	{
+		flag |= init_Offset;
+		init_Offset = init_Offset >> 1;
+		printf("E%d is actived\n",id);
+	    id--;
+	}
+}
+//任务执行操作变成
+void do_Task(int num)
+{
+	for(int i = 0; i < num; i++)
+	{
+		printf("task%d is running\n",num);
+		Sleep(500);
+	}
+}
+//事件触发的时钟
+void WINAPI onTimeFunc(UINT wTimerID, UINT msg,DWORD dwUser,DWORD dwl,DWORD dw2)
+{
+	event_Task();
+}
+
+int main(int argc, char* argv[])
+{
+	//计时事件的标志
+	MMRESULT timer_id;
+	int i = 0;
+	//事件集合触发操作变成
+//	for(i = 0; i < N; i++)
+//	{
+		//Timer(i,event_Task);
+//	}
+	timer_id = timeSetEvent(1000, 1, (LPTIMECALLBACK)onTimeFunc, DWORD(1), TIME_PERIODIC);
+    if(NULL == timer_id)
+    {
+        printf("timeSetEvent() failed with error %d\n", GetLastError());
+        return 0;
+    }
+	//调度器调度管理
+	while(true)
+	{
+		for(i = 0; i < N; i++)
+		{
+			if((flag >> i)&1)
+			{
+				do_Task(i+1);         //执行第几号任务  
+				flag &= ~(1 << i);    //将任务标志位回执为0
+				break;
+			}
+		}
+	}
+	return 0;
+}
+```
+
+####后面的工作自己要将操作系统的主要几个功能可以自己考虑一下要怎么进行实现

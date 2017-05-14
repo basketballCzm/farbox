@@ -1,0 +1,13 @@
+---
+date: 2017-05-01 16:58
+status: public
+title: 操作系统的事件调度机制文件读写操作错误
+---
+
+```C++
+ch[2] = "\n";
+fenpei[9] = "malloc:\n";
+write(Handle,fenpei,8);     //9会把\0写入文件可能会出现乱码
+write(Handle,g_mem,900);
+write(Handle,ch,1);          //同理
+```
