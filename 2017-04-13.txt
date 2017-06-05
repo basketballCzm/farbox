@@ -4,6 +4,7 @@ status: public
 title: 记录
 ---
 
+
 #陈自民的第一篇日志
 ##陈的二级标题
 ####无序列表
@@ -29,3 +30,29 @@ title: 记录
 #include <iostrem>
 using namespace std;
 ```
+
+##多级引用
+> chenzimign
+>> ziming 
+>>> xiaozimin 
+>>>> xiaoxiao
+
+###表格
+| 列1 | 列2 | 列3 |
+|  :---  | :---: | ---: |
+| 居左 | 居中个梵蒂冈梵蒂冈  | 居右|
+
+###插入视屏"http://www.bilibili.com/video/av2993071/"
+<iframe height= 300 width= 100% src="url" frameborder=0 allowfullscreen></iframe>
+
+###虚线
+---
+---
+
+### 文本样式
+* 粗体  **粗体**
+* 斜体  *斜体*
+* 删除线 ~~删除线~~ 需要设置偏好设置 preferences->MarkDown->Strikethrough
+* ==高亮==  ==高亮== 需要支持高亮 preferences->MarkDown->highlight
+* 段落 段落与 段落之间一定要空一行
+* 水平线  -- 两个减号表示实线， --- 三个减号表示虚线

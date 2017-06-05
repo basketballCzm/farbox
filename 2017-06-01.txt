@@ -1,0 +1,28 @@
+---
+date: 2017-06-01 10:08
+status: public
+title: git
+---
+
+### 添加邮箱
+* git config --global user.name "Your Name"
+* git config --global user.email you@example.com
+
+### 修改remote
+* git remote set-url origin URL
+* git remote set-branches [--add] <name> <branch>...
+* git remote set-url [--push] <name> <newurl> [<oldurl>]
+* git remote set-url --add <name> <newurl>
+* git remote set-url --delete <name> <url>
+
+### 今天提交simple_DSP
+* 首先pull master提交了czm_DSP分枝 ，然后切换到主分支，然后pull合并czm_DSP，再进行强制提交-f.
+* To https://github.com/basketballCzm/simple_DSP.git
+ ! [rejected]        master -> master (non-fast-forward)
+error: failed to push some refs to 'https://github.com/basketballCzm/simple_DSP.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+要先pull 分枝后然后才能进行push 的提交
+* 这部分还要加强练习。

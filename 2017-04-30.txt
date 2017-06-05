@@ -42,6 +42,8 @@ TBLIB_ROOT=/usr/local  /home/tb-common-utils/build.sh
 git config --global user.name "Your Name"
 git config --global user.email you@example.com
 
+
+
 #添加.so搜索路径
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/lib
 

@@ -1,0 +1,10 @@
+---
+date: 2017-05-26 09:20
+status: public
+title: linux编程服务器模型
+---
+
+* 多进程并发模型
+# 问题的发现
+* 今天在写大作业的时候用到了linux和windows的socket通信，但是发现windows的客户端始终连不上linux的服务端。
+* 关闭windows和linux的防火墙。（花了我半天，先开始只是关了linux的防火墙，没关windows的。。。）

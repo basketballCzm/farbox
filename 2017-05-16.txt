@@ -1,0 +1,214 @@
+---
+date: 2017-05-18 16:54
+status: public
+title: linux下的printf编写
+---
+
+#linux下的编译器进行了相应的优化
+* 不一定将所有的形参都进行压栈
+```c
+//test
+TEST(IOTest,IOTest_print)
+{
+	char szBuf[255] = "123456";
+	int num = 78;
+	char ch = '9';
+	TBSYS_LOG(DEBUG,"szBuf = %x",szBuf);
+	print("%s%d%c\n",szBuf,num,ch);
+
+	print_rewrite("%s%d%c\n",szBuf,num,ch);
+}
+```
+//printf
+```c
+void print(const char *pFormat,...)
+{
+	if(NULL == pFormat)
+	{
+		return;
+	}
+    TBSYS_LOG(DEBUG,"entry print");
+	//this should have a forced conversion(char **)
+    char **pTemp = (char **)&pFormat;
+    TBSYS_LOG(DEBUG,"pFormat = %s,%x",pFormat,pFormat);
+    TBSYS_LOG(DEBUG,"pTemp = %x",pTemp);
+    TBSYS_LOG(DEBUG,"*pTemp = %x",*pTemp);
+    //TBSYS_LOG(DEBUG,"pFormat+8 = %x",(pFormat+8))
+    while('\0' != *pFormat)
+    {
+        if('%' == *pFormat)
+        {
+            pFormat++;
+            pTemp++;
+            TBSYS_LOG(DEBUG,"pTemp = %x",pTemp);
+            TBSYS_LOG(DEBUG,"*pTemp = %x",*pTemp);
+            switch(*pFormat)
+            {
+            case 'd':
+            case 'D':
+            {
+                int ntmp = *((int*)pTemp);
+                TBSYS_LOG(DEBUG,"this is d! %d",&ntmp);
+                char szBuf[255] = "";
+                Itoa(ntmp,szBuf);
+                for(int i = 0; '\0' != szBuf[i]; i++)
+                {
+                    putchar(szBuf[i]);
+                }
+                break;
+            }
+            case 's':
+            case 'S':
+            {
+                char *pStr = *pTemp;
+                TBSYS_LOG(DEBUG,"this is s! %s pStr = %x",pStr,pStr);
+                for(int i = 0; '\0' != pStr[i]; i++)
+                {
+                    putchar(pStr[i]);
+                }
+                break;
+            }
+            case 'c':
+            case 'C':
+            {
+                char ch = *((char*)pTemp);
+                TBSYS_LOG(DEBUG,"this is c! %c",&ch);
+                putchar(ch);
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+        }
+        else
+        {
+            putchar(*pFormat);
+        }
+        pFormat++;
+    }
+}
+```
+//调试信息
+```c
+(gdb) x/100xb 0x7fffffffe120
+0x7fffffffe120:	0x31	0x32	0x33	0x34	0x35	0x36	0x00	0x00
+0x7fffffffe128:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe130:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe138:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe140:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe148:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe150:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe158:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe160:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe168:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe170:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe178:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7fffffffe180:	0x00	0x00	0x00	0x00
+
+
+(gdb) info register
+rax            0x0	0
+rbx            0x7fffffffe120	140737488347424
+rcx            0x39	57
+rdx            0x4e	78
+rsi            0x7fffffffe120	140737488347424
+rdi            0x42aac7	4369095
+rbp            0x7ffff7fde740	0x7ffff7fde740
+rsp            0x7fffffffdfa0	0x7fffffffdfa0
+r8             0x7ffff7027938	140737337522488
+r9             0x42	66
+r10            0x0	0
+r11            0x246	582
+r12            0x63dd50	6544720
+r13            0x42bad1	4373201
+r14            0x15c1abe340e	1495097291790
+r15            0x0	0
+rip            0x405f71	0x405f71 <print(char const*, ...)+17>
+eflags         0x206	[ PF IF ]
+cs             0x33	51
+ss             0x2b	43
+ds             0x0	0
+es             0x0	0
+fs             0x0	0
+gs             0x0	0
+(gdb) x/100xb 0x7ffff7fde740
+0x7ffff7fde740:	0x40	0xe7	0xfd	0xf7	0xff	0x7f	0x00	0x00
+0x7ffff7fde748:	0x50	0xf0	0xfd	0xf7	0xff	0x7f	0x00	0x00
+0x7ffff7fde750:	0x40	0xe7	0xfd	0xf7	0xff	0x7f	0x00	0x00
+0x7ffff7fde758:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde760:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde768:	0x00	0xe3	0xc3	0x1e	0x8d	0xac	0xab	0x7c
+0x7ffff7fde770:	0x11	0x14	0xb0	0xd6	0x11	0x2b	0x20	0x59
+0x7ffff7fde778:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde780:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde788:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde790:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde798:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
+0x7ffff7fde7a0:	0x00	0x00	0x00	0x00
+```
+* 在上面的调试信息中可以看到在函数print的栈中并没有相应的形参（"%s%d%c\n",szBuf,num,ch）的压栈后的值正确的压栈后的顺序为（从低到高）：（4个形参都没压栈。。。。）
+"%s%d%c\n"
+szBuf
+num
+ch
+但是在打印的栈中并没有这样的信息，这样就不能根据压栈的次序来进行取对应省略的形参。
+* 上面的问题困扰了我比较久，然后在今天的调试中发现
+```c
+(gdb) info register
+rax            0x0	0
+rbx            0x7fffffffe120	140737488347424
+rcx            0x39	57
+rdx            0x4e	78
+rsi            0x7fffffffe120	140737488347424
+rdi            0x42aac7	4369095
+rbp            0x7ffff7fde740	0x7ffff7fde740
+rsp            0x7fffffffdfa0	0x7fffffffdfa0
+r8             0x7ffff7027938	140737337522488
+r9             0x42	66
+```
+发现相应的形参是通过寄存器带入的即
+"%s%d%c\n"     rdi      0x42aac7	4369095 
+szBuf            rbx     0x7fffffffe120	140737488347424
+num        rdx            0x4e	78
+ch        rcx            0x39	57
+
+---
+* 这里我想了一下可能是编译器进行优化的结果，因为毕竟从寄存器当中取值的话要比从内存当中取值要快得多。有这么多寄存器没被使用为什么不用寄存器了。这一点就和windows下面的VC不一样了。
+
+---
+###windows下面
+```c
+	int num = 23;
+	char ch = 'c';
+	char szBuf[255] = "Teas";
+	print("%d,%c%s\n",num,ch,szBuf);
+
+//内存
+018FDDC  48 FF 18 00  H...//main ebp
+0018FDE0  6B 16 40 00  k.@. //eip
+0018FDE4  20 00 42 00   .B. //pFormat
+0018FDE8  17 00 00 00  .... //23
+0018FDEC  63 00 00 00  c... //'c'
+
+//刚进函数print时的寄存器状况
+EAX = 00000063 EBX = 7EFDE000
+ ECX = 00000017 EDX = 0018FE40
+ ESI = 00000000 EDI = 0018FF3F
+ EIP = 004011C9 ESP = 0018FC7C
+ EBP = 0018FDDC EFL = 00000202
+ CS = 0023 DS = 002B ES = 002B
+ SS = 002B FS = 0053 GS = 002B
+ //由于压栈了进函数后形参的值是通过ebp来算的
+ 004011DC   rep stos    dword ptr [edi]
+45:       char **pTemp =&pFormat;
+004011DE   lea         eax,[ebp+8]//第一个省略的形参
+004011E1   mov         dword ptr [ebp-4],eax
+
+```
+EAX = 00000063  ECX = 00000017
+带入了形参但是没有寄存器带第一个形参
+
+# 总结
+* 在写底层的代码时要考虑的问题有很多，平台，编译器等。但是不能受困于环境。点到为止。太纠结。。。。

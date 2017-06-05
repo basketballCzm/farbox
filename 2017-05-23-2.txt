@@ -1,0 +1,12 @@
+---
+date: 2017-05-23 23:04
+status: public
+title: 2017-05-23-2
+---
+
+##明天
+* 人机智能交互paper   markdown  or office 
+* 人机智能交互实验报告
+* 开始XML大作业的编写工作。
+
+pandoc + markdown 轻量级论文写作自学一下
